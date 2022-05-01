@@ -6,8 +6,11 @@ from httplib2 import Response
 from requests import post, request
 from dotenv import load_dotenv
 from flask import Flask,jsonify,request as FlaskRequest
-from discord import Guild,Member
+from discord import Guild,VoiceState,Member
 from module.flaskFunc import move,guildInfo, userInfo,channelInfo
+from module.discordBotFunc import channel_create,channel_delete,voice_state 
+
+from pprint import pprint
 
 intents = discord.Intents.all()
 client = discord.Client(intents=intents)
@@ -29,34 +32,24 @@ def bot ():
   @client.event
   async def on_guild_channel_create(channel):
     if channel.type == discord.ChannelType.voice:
-      data = {
-        "guildId":channel.guild.id,
-        "type":"create",
-        "data":{
-          "channelId":channel.id,
-        }
-      }
+      data = channel_create(channel=channel)
       print(data)
     
   @client.event
   async def on_guild_channel_delete(channel):
     if channel.type == discord.ChannelType.voice:
-      data = {
-        "guildId":channel.guild.id,
-        "type":"delete",
-        "data":{
-          "channelId":channel.id,
-        }
-      }
-      print("hoge")
+      data = channel_delete(channel=channel)
+      print(data)
       
   @client.event
-  async def on_voice_state_update(member,before,after):
-    print("h")
+  async def on_voice_state_update(member:Member,before:VoiceState,after:VoiceState):
     if before.channel != after.channel:
-      print(before,after) 
-      beforeId = before.channel.id
-      afterId = after.channel.id
+      data = voice_state(
+        before=before,
+        after=after,
+        user=member
+      )
+      pprint(data)
       
   @client.event
   async def on_message(message):
